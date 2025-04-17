@@ -21,29 +21,29 @@ import Link from "next/link";
 const featuredPosts = [
   {
     id: 1,
-    title: "Ultimate Guide to UTA Spirit Gear: Show Your Maverick Pride",
+    title: "Essential UTA Spirit Gear for Game Day",
     excerpt:
-      "Discover the latest collection of UTA merchandise and learn how to style your spirit wear for any occasion.",
+      "Get ready for game day with our curated selection of UTA Mavericks apparel. From comfortable Next Level t-shirts to cozy fleece hoodies, we've got everything you need to show your school spirit.",
     image: "/blog/spirit-gear.jpg",
-    category: "Fashion",
+    category: "Spirit Gear",
     date: "March 15, 2024",
     readTime: "5 min read",
   },
   {
     id: 2,
-    title: "Top 10 Must-Have School Supplies for UTA Students",
+    title: "Tech Essentials for UTA Students",
     excerpt:
-      "Get ready for the semester with our curated list of essential supplies every UTA student needs.",
-    image: "/blog/supplies.jpg",
-    category: "Student Life",
+      "Discover the must-have tech accessories for your academic success. From USB drives to laptop sleeves, we've got the perfect tech gear to keep you organized and productive throughout the semester.",
+    image: "/blog/tech-essentials.jpg",
+    category: "Accessories",
     date: "March 12, 2024",
     readTime: "4 min read",
   },
   {
     id: 3,
-    title: "Sustainable Shopping: Eco-Friendly Products at UTA Market",
+    title: "Sustainable Shopping at UTA Market",
     excerpt:
-      "Learn about our commitment to sustainability and discover our range of environmentally conscious products.",
+      "Learn about our commitment to sustainability and discover our range of eco-friendly products. From organic cotton t-shirts to reusable accessories, shop consciously with UTA Market.",
     image: "/blog/eco.jpg",
     category: "Sustainability",
     date: "March 10, 2024",
@@ -54,26 +54,26 @@ const featuredPosts = [
 const latestPosts = [
   {
     id: 4,
-    title: "5 Study Space Essentials from UTA Market",
-    category: "Student Life",
+    title: "Spring 2024 UTA Apparel Collection",
+    category: "Apparel",
     date: "March 8, 2024",
   },
   {
     id: 5,
-    title: "New Collection Alert: Spring 2024 UTA Apparel",
-    category: "Fashion",
+    title: "Top 5 Must-Have UTA Accessories",
+    category: "Accessories",
     date: "March 6, 2024",
   },
   {
     id: 6,
-    title: "Gift Guide: Perfect Presents for UTA Graduates",
-    category: "Gift Ideas",
+    title: "Graduation Gift Guide: UTA Edition",
+    category: "Gifts",
     date: "March 4, 2024",
   },
   {
     id: 7,
-    title: "Tech Accessories Every Student Needs",
-    category: "Technology",
+    title: "UTA Spirit Wear: Dress Like a Maverick",
+    category: "Spirit Gear",
     date: "March 2, 2024",
   },
 ];
@@ -89,6 +89,17 @@ export default function BlogPage() {
   return (
     <>
       <Header />
+      <div className="bg-yellow-400 text-black py-2 overflow-hidden border-y-2 border-black">
+        <div className="animate-marquee whitespace-nowrap flex">
+          <div className="flex space-x-4 mx-4">
+            {[...Array(12)].map((_, i) => (
+              <span key={i} className="inline-block">
+                ⚠️ This page is still under development !
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
       <main className="min-h-screen bg-gray-50">
         {/* Hero Section */}
         <div className="bg-[#0064B1] text-white py-16">
@@ -223,6 +234,17 @@ export default function BlogPage() {
           </div>
         </div>
       </main>
+      <div className="bg-yellow-400 text-black py-2 overflow-hidden border-y-2 border-black">
+        <div className="animate-marquee whitespace-nowrap flex">
+          <div className="flex space-x-4 mx-4">
+            {[...Array(12)].map((_, i) => (
+              <span key={i} className="inline-block">
+                ⚠️ This page is still under development !
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
       <Footer />
     </>
   );
