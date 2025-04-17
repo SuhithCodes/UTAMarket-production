@@ -67,10 +67,11 @@ export async function GET(request) {
       // Add color filter
       if (colors.length > 0) {
         sql += ` AND (`;
-        const colorConditions = colors.map((_, index) => {
+        const colorConditions = colors.map((color, index) => {
           if (index > 0) sql += ` OR `;
-          sql += `JSON_CONTAINS(p.product_details, ?, '$.color')`;
-          params.push(JSON.stringify(colors[index]));
+          // Search in both product_details.color and product name
+          sql += `(JSON_CONTAINS(p.product_details, ?, '$.color') OR LOWER(p.name) LIKE LOWER(?))`;
+          params.push(JSON.stringify(color), `%${color}%`);
           return null;
         });
         sql += `)`;
