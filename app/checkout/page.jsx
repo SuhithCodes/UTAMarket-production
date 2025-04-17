@@ -25,6 +25,7 @@ import {
   CheckCircle2,
   Loader2,
 } from "lucide-react";
+import CouponService from "@/services/couponService";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -33,6 +34,12 @@ export default function CheckoutPage() {
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [step, setStep] = useState(1);
+  const [couponCode, setCouponCode] = useState("");
+  const [couponApplied, setCouponApplied] = useState(false);
+  const [couponError, setCouponError] = useState("");
+  const [discount, setDiscount] = useState(0);
+  const [discountDescription, setDiscountDescription] = useState("");
+  const couponService = new CouponService();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -169,6 +176,64 @@ export default function CheckoutPage() {
     } finally {
       setProcessing(false);
     }
+  };
+
+  const handleApplyCoupon = () => {
+    if (!couponCode) {
+      setCouponError("Please enter a coupon code");
+      return;
+    }
+
+    const result = couponService.calculateDiscount(
+      cart.summary.subtotal,
+      couponCode
+    );
+
+    if (result.error) {
+      setCouponError(result.error);
+      setCouponApplied(false);
+      setDiscount(0);
+      setDiscountDescription("");
+    } else {
+      setCouponError("");
+      setCouponApplied(true);
+      setDiscount(result.discountAmount);
+      setDiscountDescription(result.description);
+
+      // Update cart summary with discount
+      setCart((prevCart) => ({
+        ...prevCart,
+        summary: {
+          ...prevCart.summary,
+          discount: result.discountAmount,
+          total:
+            result.finalAmount +
+            prevCart.summary.shipping +
+            prevCart.summary.tax,
+        },
+      }));
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponCode("");
+    setCouponApplied(false);
+    setCouponError("");
+    setDiscount(0);
+    setDiscountDescription("");
+
+    // Reset cart summary without discount
+    setCart((prevCart) => ({
+      ...prevCart,
+      summary: {
+        ...prevCart.summary,
+        discount: 0,
+        total:
+          prevCart.summary.subtotal +
+          prevCart.summary.shipping +
+          prevCart.summary.tax,
+      },
+    }));
   };
 
   if (loading) {
@@ -457,6 +522,38 @@ export default function CheckoutPage() {
             <div className="lg:col-span-1">
               <div className="bg-white rounded-lg shadow-sm p-6 sticky top-4">
                 <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+
+                {/* Coupon Input */}
+                <div className="mb-4">
+                  <div className="flex gap-2">
+                    <Input
+                      type="text"
+                      placeholder="Enter coupon code"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value)}
+                      className="flex-1"
+                      disabled={couponApplied}
+                    />
+                    {!couponApplied ? (
+                      <Button onClick={handleApplyCoupon} variant="outline">
+                        Apply
+                      </Button>
+                    ) : (
+                      <Button onClick={handleRemoveCoupon} variant="outline">
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+                  {couponError && (
+                    <p className="text-red-500 text-sm mt-1">{couponError}</p>
+                  )}
+                  {couponApplied && (
+                    <p className="text-green-500 text-sm mt-1">
+                      {discountDescription}
+                    </p>
+                  )}
+                </div>
+
                 <div className="space-y-4">
                   {cart.items.map((item) => (
                     <div
@@ -494,6 +591,14 @@ export default function CheckoutPage() {
                     <span className="text-zinc-600">Subtotal</span>
                     <span>${cart.summary.subtotal.toFixed(2)}</span>
                   </div>
+                  {discount > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-zinc-600">Discount</span>
+                      <span className="text-green-500">
+                        -${discount.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-sm">
                     <span className="text-zinc-600">Shipping</span>
                     <span>

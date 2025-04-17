@@ -1,5 +1,14 @@
 import { NextResponse } from "next/server";
 import pool from "@/database/db.js";
+import PricingService from "@/services/pricingService";
+
+// Helper function to get seasonal multiplier
+function getSeasonalMultiplier() {
+  const month = new Date().getMonth();
+  if (month >= 7 && month <= 9) return 1.1; // Fall semester
+  if (month >= 0 && month <= 2) return 1.1; // Spring semester
+  return 1.0; // Regular season
+}
 
 export async function GET() {
   let connection;
@@ -56,17 +65,28 @@ export async function GET() {
 
     // Calculate discounts and format response
     const formattedProducts = products.map((product) => {
-      const price = parseFloat(product.price);
-      const originalPrice = price * 1.2; // 20% markup for original price
-      const discount = Math.round(
-        ((originalPrice - price) / originalPrice) * 100
-      );
+      const basePrice = parseFloat(product.price);
+
+      // Use PricingService for dynamic pricing
+      const pricingService = new PricingService()
+        .setBasePrice(basePrice)
+        .applyTimeFactor(getSeasonalMultiplier())
+        .applyDemandFactor(product.total_sales || 0)
+        .applyInventoryFactor(product.stock_quantity || 100)
+        .applyUserFactor("regular");
+
+      const dynamicPrice = pricingService.calculate();
+      const originalPrice = basePrice; // Use base price as original price
+      const discount =
+        originalPrice > dynamicPrice
+          ? Math.round(((originalPrice - dynamicPrice) / originalPrice) * 100)
+          : 0;
 
       return {
         id: product.id,
         name: product.name,
         category: product.category,
-        price: price,
+        price: dynamicPrice,
         originalPrice: originalPrice,
         discount: discount,
         image: product.image_url || "https://via.placeholder.com/300",
