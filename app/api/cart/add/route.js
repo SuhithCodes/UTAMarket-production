@@ -5,13 +5,22 @@ import pool from "@/database/db.js";
 
 export async function POST(request) {
   let connection;
+  let decoded; // Declare decoded at the function scope
   try {
     // Get the token from the cookie - properly awaited both calls
     const cookieStore = await cookies();
     const token = await cookieStore.get("auth_token");
     const tokenValue = token?.value;
 
+    console.log("Auth Debug - Token Present:", !!token);
+    console.log(
+      "Auth Debug - Token Value:",
+      tokenValue ? "Present" : "Missing"
+    );
+    console.log("Auth Debug - All Cookies:", cookieStore.getAll());
+
     if (!tokenValue) {
+      console.log("Auth Debug - No token value found");
       return NextResponse.json(
         { error: "Authentication required" },
         { status: 401 }
@@ -19,10 +28,20 @@ export async function POST(request) {
     }
 
     // Verify the token
-    const decoded = jwt.verify(
-      tokenValue,
-      process.env.JWT_SECRET || "utamarket_secret_key_2024"
-    );
+    try {
+      decoded = jwt.verify(
+        tokenValue,
+        process.env.JWT_SECRET || "utamarket_secret_key_2024"
+      );
+      console.log("Auth Debug - Token Decoded Successfully");
+      console.log("Auth Debug - User ID:", decoded.userId);
+    } catch (jwtError) {
+      console.log("Auth Debug - Token Verification Failed:", jwtError.message);
+      return NextResponse.json(
+        { message: "Invalid authentication token" },
+        { status: 401 }
+      );
+    }
 
     // Get request body
     const body = await request.json();
