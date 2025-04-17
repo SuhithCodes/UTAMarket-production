@@ -28,17 +28,16 @@ import {
 import { useRouter, useParams } from "next/navigation";
 import { WishlistButton } from "@/components/WishlistButton";
 import { Label } from "@/components/ui/label";
+import PricingService from "@/services/pricingService";
 
 // This would normally come from a database or API
 const getProductById = (id) => {
   // Sample product data for UTA merchandise
-  return {
+  const baseProduct = {
     id: id,
     name: "UTA Classic Hoodie",
     category: "Apparel",
-    price: 49.99,
-    originalPrice: 59.99,
-    discount: 17,
+    basePrice: 49.99,
     image:
       "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=1974&auto=format&fit=crop",
     images: [
@@ -61,72 +60,37 @@ const getProductById = (id) => {
     ],
     availableSizes: ["XS", "S", "M", "L", "XL", "2XL"],
     availableColors: ["Navy Blue", "Gray", "Orange", "White"],
-    reviews: [
-      {
-        id: 1,
-        user: "Sarah M.",
-        rating: 5,
-        date: "March 15, 2024",
-        comment:
-          "Super comfortable and great quality! The size runs true to fit.",
-        helpful: 24,
-        notHelpful: 2,
-      },
-      {
-        id: 2,
-        user: "Mike R.",
-        rating: 4,
-        date: "March 10, 2024",
-        comment:
-          "Nice hoodie, but I wish it came in more colors. The material is very soft though!",
-        helpful: 15,
-        notHelpful: 1,
-      },
-      {
-        id: 3,
-        user: "Jessica L.",
-        rating: 5,
-        date: "March 5, 2024",
-        comment:
-          "Perfect for those chilly mornings on campus. The embroidery is really well done.",
-        helpful: 19,
-        notHelpful: 0,
-      },
-    ],
-    aiRecommendations: [
-      {
-        id: 101,
-        name: "UTA Logo T-Shirt",
-        category: "Apparel",
-        price: 24.99,
-        image:
-          "https://images.unsplash.com/photo-1576566588028-4147f3842f27?q=80&w=1964&auto=format&fit=crop",
-        rating: 4.6,
-        reason: "Perfect for layering with the hoodie",
-      },
-      {
-        id: 102,
-        name: "UTA Backpack",
-        category: "Accessories",
-        price: 39.99,
-        image:
-          "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=1974&auto=format&fit=crop",
-        rating: 4.9,
-        reason: "Complete your campus look",
-      },
-      {
-        id: 103,
-        name: "Maverick Pride Cap",
-        category: "Accessories",
-        price: 22.99,
-        image:
-          "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?q=80&w=1936&auto=format&fit=crop",
-        rating: 4.7,
-        reason: "Customers often buy these together",
-      },
-    ],
+  };
+
+  // Calculate dynamic price
+  const pricingService = new PricingService()
+    .setBasePrice(baseProduct.basePrice)
+    .applyTimeFactor(getSeasonalMultiplier())
+    .applyDemandFactor(15) // Sample sales velocity
+    .applyInventoryFactor(3) // Sample current stock
+    .applyUserFactor("student"); // Sample user type
+
+  const dynamicPrice = pricingService.calculate();
+  const originalPrice = baseProduct.basePrice * 1.2; // 20% markup for original price
+  const discount = Math.round(
+    ((originalPrice - dynamicPrice) / originalPrice) * 100
+  );
+
+  return {
+    ...baseProduct,
+    price: dynamicPrice,
+    originalPrice: originalPrice,
+    discount: discount,
   };
 };
+
+// Helper function to get seasonal multiplier
+function getSeasonalMultiplier() {
+  const month = new Date().getMonth();
+  if (month >= 7 && month <= 9) return 1.1; // Fall semester
+  if (month >= 0 && month <= 2) return 1.1; // Spring semester
+  return 1.0; // Regular season
+}
 
 export default function ProductPage() {
   const params = useParams();

@@ -6,11 +6,12 @@ import { Heart, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { WishlistButton } from "@/components/WishlistButton";
+import PricingService from "@/services/pricingService";
 
 export function ProductCard({
   id,
   name,
-  price,
+  basePrice,
   image,
   itemDetails = { Type: "N/A", Color: "N/A", Size: "N/A" },
   category,
@@ -18,7 +19,20 @@ export function ProductCard({
   reviewCount = 0,
   discount = 0,
   originalPrice,
+  currentStock = 100,
+  salesVelocity = 0,
+  userType = "regular",
 }) {
+  // Calculate dynamic price
+  const pricingService = new PricingService()
+    .setBasePrice(basePrice)
+    .applyTimeFactor(getSeasonalMultiplier())
+    .applyDemandFactor(salesVelocity)
+    .applyInventoryFactor(currentStock)
+    .applyUserFactor(userType);
+
+  const dynamicPrice = pricingService.calculate();
+
   const formatPrice = (price) => {
     if (!price) return "0.00";
     const numPrice =
@@ -28,29 +42,28 @@ export function ProductCard({
     return isNaN(numPrice) ? "0.00" : numPrice.toFixed(2);
   };
 
+  // Helper function to get seasonal multiplier
+  function getSeasonalMultiplier() {
+    const month = new Date().getMonth();
+    if (month >= 7 && month <= 9) return 1.1; // Fall semester
+    if (month >= 0 && month <= 2) return 1.1; // Spring semester
+    return 1.0; // Regular season
+  }
+
   // Parse sizes from itemDetails
   const availableSizes = itemDetails.Size ? itemDetails.Size.split(",") : [];
 
   return (
-    <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col h-full">
-      <Link href={`/product/${id}`} className="block">
-        <div className="relative aspect-square overflow-hidden rounded-t-lg">
-          <Image
-            src={image}
-            alt={name}
-            fill
-            className="object-cover transition-transform group-hover:scale-105"
-          />
-          <div className="absolute top-2 left-2 flex flex-col gap-1">
-            {discount > 0 && (
-              <Badge className="bg-red-500">{discount}% OFF</Badge>
-            )}
-            {itemDetails.Color && itemDetails.Color !== "N/A" && (
-              <Badge className="bg-blue-600">{itemDetails.Color}</Badge>
-            )}
-          </div>
-        </div>
-      </Link>
+    <div className="group relative flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white">
+      <div className="aspect-h-4 aspect-w-3 bg-zinc-200 sm:aspect-none sm:h-48">
+        <Image
+          src={image}
+          alt={name}
+          width={300}
+          height={300}
+          className="h-full w-full object-cover object-center sm:h-full sm:w-full"
+        />
+      </div>
       <div className="flex flex-col flex-grow p-4">
         <div className="flex-grow">
           <div className="text-sm text-zinc-500 mb-1">
@@ -61,7 +74,7 @@ export function ProductCard({
           </h3>
           <div className="mt-2 flex items-center gap-2">
             <span className="text-lg font-semibold text-[#0064B1]">
-              ${formatPrice(price)}
+              ${formatPrice(dynamicPrice)}
             </span>
             {discount > 0 && originalPrice && (
               <span className="text-sm text-zinc-400 line-through">
@@ -106,7 +119,7 @@ export function ProductCard({
             product={{
               id,
               name,
-              price,
+              price: dynamicPrice,
               image,
               itemDetails,
               category,
